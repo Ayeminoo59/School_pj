@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="welcome-banner">
+  <h1>Admin Dashboard 🛠️</h1>
+  <p>Platform-wide overview — manage people, modules, groups and requests.</p>
+</div>
+
+<div class="grid-cards">
+  <div class="card">
+    <p class="card-title">👤 Registered Users</p>
+    <p class="stat-number">{{ stats.users }}</p>
+    <a class="btn btn-outline btn-sm" href="{{ url_for('admin.users') }}">Manage Users</a>
+  </div>
+
+  <div class="card">
+    <p class="card-title">📚 Modules</p>
+    <p class="stat-number">{{ stats.modules }}</p>
+    <a class="btn btn-outline btn-sm" href="{{ url_for('admin.modules') }}">Manage Modules</a>
+  </div>
+
+  <div class="card">
+    <p class="card-title">👥 Study Groups</p>
+    <p class="stat-number">{{ stats.groups }}</p>
+    <a class="btn btn-outline btn-sm" href="{{ url_for('admin.groups') }}">View Groups</a>
+  </div>
+
+  <div class="card">
+    <p class="card-title">📨 Pending Requests</p>
+    <p class="stat-number">{{ stats.requests_pending }}</p>
+    <a class="btn btn-outline btn-sm" href="{{ url_for('admin.requests_view') }}">Review Requests</a>
+  </div>
+</div>
+
+<div class="grid-cards">
+  <div class="card">
+    <p class="card-title">📊 More Platform Stats</p>
+    <ul class="summary-list mt-2">
+      <li>🤝 Match results stored: <strong>{{ stats.matches }}</strong></li>
+      <li>📅 Availability slots saved: <strong>{{ stats.slots }}</strong></li>
+      <li>🎓 Module enrolments: <strong>{{ stats.enrollments }}</strong></li>
+      <li>📨 Study requests in total: <strong>{{ stats.requests_total }}</strong></li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <p class="card-title">🆕 Newest Users</p>
+    {% for u in recent_users %}
+      <div class="row-item">
+        <div class="row-main">
+          <div class="row-title">
+            {{ u.name }}
+            {% if u.is_admin %}<span class="badge badge-excellent">ADMIN</span>{% endif %}
+          </div>
+          <div class="row-sub">{{ u.email }} · joined {{ u.created_at.strftime('%d %b %Y %H:%M') }}</div>
+        </div>
+      </div>
+    {% else %}
+      <p class="text-soft text-sm mt-2">No users yet.</p>
+    {% endfor %}
+    <div class="mt-2"><a class="btn btn-outline btn-sm" href="{{ url_for('admin.users') }}">All Users →</a></div>
+  </div>
+
+  <div class="card">
+    <p class="card-title">📨 Latest Study Requests</p>
+    {% for r in recent_requests %}
+      <div class="row-item">
+        <div class="row-main">
+          <div class="row-title">{{ r.sender_obj.name }} → {{ r.receiver_obj.name }}</div>
+          <div class="row-sub">📘 {{ r.module_obj.module_code }} · {{ r.created_at.strftime('%d %b %Y %H:%M') }}</div>
+        </div>
+        <span class="badge badge-{{ r.status }}">{{ r.status|capitalize }}</span>
+      </div>
+    {% else %}
+      <p class="text-soft text-sm mt-2">No study requests yet.</p>
+    {% endfor %}
+    <div class="mt-2"><a class="btn btn-outline btn-sm" href="{{ url_for('admin.requests_view') }}">All Requests →</a></div>
+  </div>
+</div>
+{% endblock %}

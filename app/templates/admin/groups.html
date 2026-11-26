@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+{% block title %}Admin · Study Groups{% endblock %}
+
+{% block content %}
+<div class="stack">
+  <div class="card page-header">
+    <p class="card-title">👥 Study Group Oversight ({{ groups|length }})</p>
+    <p class="card-subtitle">
+      Every group on the platform. Deleting a group also removes its
+      membership records and proposed session schedules.
+    </p>
+    <div class="row-actions mt-2">
+      <a class="btn btn-outline btn-sm" href="{{ url_for('admin.dashboard') }}">← Dashboard</a>
+    </div>
+  </div>
+
+  <div class="card">
+    {% for g in groups %}
+      <div class="row-item">
+        <div class="row-main">
+          <div class="row-title">
+            {{ g.name }}
+            <span class="chip">📘 {{ g.module_obj.module_code }}</span>
+          </div>
+          <div class="row-sub">
+            👥 {{ g.members|length }} member(s) · created by {{ g.creator_obj.name }} ·
+            {{ g.created_at.strftime('%d %b %Y') }}
+          </div>
+          {% if g.description %}<div class="row-sub">{{ g.description }}</div>{% endif %}
+        </div>
+        <div class="row-actions">
+          <form method="post" action="{{ url_for('admin.delete_group', group_id=g.group_id) }}" class="inline-form"
+                onsubmit="return confirm('Delete group {{ g.name }}? Its members and proposed sessions will be removed too.');">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+          </form>
+        </div>
+      </div>
+    {% else %}
+      <div class="empty-state">
+        <span class="empty-icon">👥</span>
+        No study groups exist yet.
+      </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

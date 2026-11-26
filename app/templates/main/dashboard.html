@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="welcome-banner">
+  <h1>Welcome, {{ current_user.name|upper }}! 👋</h1>
+  <p>Here's your study matching progress:</p>
+</div>
+
+<div class="grid-cards">
+  <div class="card">
+    <p class="card-title">📚 My Modules</p>
+    {% if my_modules %}
+      <ul class="summary-list mt-2">
+        {% for m in my_modules %}
+          <li>✅ <strong>{{ m.module_code }}</strong> — {{ m.module_name }}</li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p class="text-soft text-sm mt-2">No modules selected yet.</p>
+    {% endif %}
+    <div class="mt-2"><a class="btn btn-outline btn-sm" href="{{ url_for('modules.select_modules') }}">Manage Modules</a></div>
+  </div>
+
+  <div class="card">
+    <p class="card-title">🕐 My Availability</p>
+    {% if my_slots %}
+      <ul class="summary-list mt-2">
+        {% for s in my_slots %}
+          <li>📅 {{ s.day_of_week|day_name }} | {{ s.start_time }} - {{ s.end_time }}</li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p class="text-soft text-sm mt-2">No availability added yet.</p>
+    {% endif %}
+    <div class="mt-2"><a class="btn btn-outline btn-sm" href="{{ url_for('availability.manage_availability') }}">Update Availability</a></div>
+  </div>
+
+  <div class="card">
+    <p class="card-title">💛 Your Matches</p>
+    {% if matches_count > 0 %}
+      <p class="text-sm mt-2">You have <strong>{{ matches_count }}</strong> potential study partner{{ 's' if matches_count > 1 }}!</p>
+    {% else %}
+      <p class="text-sm mt-2">Run your first match search to find study partners.</p>
+    {% endif %}
+    <div class="mt-2"><a class="btn btn-outline btn-sm" href="{{ url_for('matches.view_matches') }}">View Matches</a></div>
+  </div>
+
+  <div class="card">
+    <p class="card-title">📨 Study Requests</p>
+    <div class="flex-between mt-2">
+      <span class="text-sm text-soft">Pending incoming requests</span>
+      <span class="count-pill">{{ pending_requests }}</span>
+    </div>
+    <div class="mt-2"><a class="btn btn-outline btn-sm" href="{{ url_for('requests.list_requests') }}">Review Requests</a></div>
+  </div>
+
+  <div class="card">
+    <p class="card-title">👥 My Groups</p>
+    {% if groups_count > 0 %}
+      <p class="text-sm mt-2">You are a member of <strong>{{ groups_count }}</strong> study group{{ 's' if groups_count > 1 }}.</p>
+    {% else %}
+      <p class="text-sm mt-2">You haven't joined any study group yet.</p>
+    {% endif %}
+    <div class="mt-2"><a class="btn btn-outline btn-sm" href="{{ url_for('groups.list_groups') }}">View Groups</a></div>
+  </div>
+
+  <div class="card">
+    <p class="card-title">🗓️ Upcoming Sessions</p>
+    {% if upcoming_schedules %}
+      <ul class="summary-list mt-2">
+        {% for schedule, group in upcoming_schedules %}
+          <li>📆 {{ schedule.day_of_week|day_name }} {{ schedule.start_time }}–{{ schedule.end_time }} <span class="text-soft text-sm">({{ group.name }})</span></li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p class="text-sm mt-2">No proposed study sessions yet.</p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

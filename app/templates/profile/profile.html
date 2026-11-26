@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+{% block title %}Profile{% endblock %}
+
+{% block content %}
+<div class="stack">
+  <div class="grid-cards">
+    <div class="card">
+      <p class="card-title">👤 My Information</p>
+      <p class="card-subtitle">Keep your details up to date.</p>
+
+      <form method="post" action="{{ url_for('profile.update_profile') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+        <div class="form-group">
+          <label class="form-label" for="name">Full Name</label>
+          <input class="form-input" type="text" id="name" name="name" value="{{ current_user.name }}" required maxlength="120">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="email">Email</label>
+          <input class="form-input" type="email" id="email" name="email" value="{{ current_user.email }}" required maxlength="120">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="course">Course / Programme</label>
+          <input class="form-input" type="text" id="course" name="course" value="{{ current_user.course }}" required maxlength="120">
+        </div>
+
+        <button type="submit" class="btn">💾 Update Profile</button>
+      </form>
+    </div>
+
+    <div class="card">
+      <p class="card-title">📊 Account Statistics</p>
+      <ul class="summary-list mt-2">
+        <li>📚 Modules Selected: <strong>{{ modules_count }}</strong></li>
+        <li>🕐 Availability Slots: <strong>{{ slots_count }}</strong></li>
+        <li>💛 Current Matches: <strong>{{ matches_count }}</strong></li>
+        <li>👥 Study Groups: <strong>{{ groups_count }}</strong></li>
+        <li>📅 Member Since: <strong>{{ current_user.created_at.strftime('%d %b %Y') }}</strong></li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <p class="card-title">⚙️ Account Actions</p>
+
+      <form method="post" action="{{ url_for('profile.change_password') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+        <div class="form-group">
+          <label class="form-label" for="current_password">Current Password</label>
+          <input class="form-input" type="password" id="current_password" name="current_password" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="new_password">New Password</label>
+          <input class="form-input" type="password" id="new_password" name="new_password" required minlength="8">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="confirm_password">Confirm New Password</label>
+          <input class="form-input" type="password" id="confirm_password" name="confirm_password" required minlength="8">
+        </div>
+
+        <button type="submit" class="btn btn-sm">🔑 Change Password</button>
+      </form>
+
+      <hr style="border:none;border-top:1px solid var(--line);margin:20px 0;">
+
+      <form method="post" action="{{ url_for('profile.delete_account') }}"
+            data-confirm="Permanently delete your account? All your modules, availability, matches, groups and requests will be removed.">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button type="submit" class="btn btn-danger btn-sm">🗑️ Delete Account</button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

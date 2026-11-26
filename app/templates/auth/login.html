@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+{% block title %}Login{% endblock %}
+
+{% block content %}
+<div class="auth-wrap">
+  <div class="auth-card">
+    <h1>Welcome Back</h1>
+    <form method="post" action="{{ url_for('auth.login', next=request.args.get('next')) }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+      <div class="form-group">
+        <label class="form-label" for="email">Email</label>
+        <input class="form-input" type="email" id="email" name="email" placeholder="student@university.com" required autofocus>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="password">Password</label>
+        <input class="form-input" type="password" id="password" name="password" placeholder="Your password" required>
+      </div>
+
+      <button type="submit" class="btn btn-block">Login →</button>
+    </form>
+
+    <p class="auth-alt">Don't have an account? <a href="{{ url_for('auth.register') }}">Register here</a></p>
+  </div>
+
+  <div class="demo-hint">
+    <strong>🛠️ Admin account</strong> — <code>admin@university.com</code> / <code>admin123</code>
+    <strong>🧪 Demo accounts</strong> — password for all: <code>password123</code>
+    <ul>
+      <li>👩‍🎓 sarah.chen@university.com</li>
+      <li>👨‍💻 michael.brown@university.com</li>
+      <li>👩‍🔬 hnin.yu@university.com</li>
+    </ul>
+  </div>
+</div>
+{% endblock %}

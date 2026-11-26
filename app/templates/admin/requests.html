@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+{% block title %}Admin · Study Requests{% endblock %}
+
+{% block content %}
+<div class="stack">
+  <div class="card page-header">
+    <p class="card-title">📨 Study Request Oversight ({{ requests_list|length }})</p>
+    <p class="card-subtitle">Every study request on the platform, newest first.</p>
+    <div class="row-actions mt-2">
+      <a class="btn btn-outline btn-sm" href="{{ url_for('admin.dashboard') }}">← Dashboard</a>
+    </div>
+  </div>
+
+  <div class="card">
+    {% for r in requests_list %}
+      <div class="row-item">
+        <div class="row-main">
+          <div class="row-title">{{ r.sender_obj.name }} → {{ r.receiver_obj.name }}</div>
+          <div class="row-sub">
+            📘 {{ r.module_obj.module_code }} ·
+            {% if r.day_of_week is not none %}
+              📅 {{ r.day_of_week|day_name }} {{ r.start_time }}–{{ r.end_time }}
+            {% else %}
+              no time proposed
+            {% endif %}
+          </div>
+        </div>
+        <div class="row-actions">
+          <span class="badge badge-{{ r.status }}">{{ r.status|capitalize }}</span>
+          <form method="post" action="{{ url_for('admin.delete_request', request_id=r.request_id) }}" class="inline-form"
+                onsubmit="return confirm('Remove this study request?');">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+          </form>
+        </div>
+      </div>
+    {% else %}
+      <div class="empty-state">
+        <span class="empty-icon">📨</span>
+        No study requests exist yet.
+      </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

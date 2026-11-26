@@ -1,0 +1,90 @@
+{% extends 'base.html' %}
+{% block title %}Your Study Matches{% endblock %}
+
+{% block content %}
+<div class="stack">
+  <div class="card page-header">
+    <p class="card-title">🎯 Your Study Matches</p>
+    <p class="card-subtitle">
+      Based on your selected modules and availability — two-stage matching
+      (shared module first, then weighted time overlap), with cached results.
+    </p>
+  </div>
+
+  {% if matches %}
+    <div class="grid-cards">
+      {% for m in matches %}
+        <div class="match-card">
+          <div class="flex-between">
+            <h3>{{ m.user.name }}</h3>
+            <span class="badge {{ 'badge-excellent' if m.score >= 85 else ('badge-good' if m.score >= 60 else 'badge-fair') }}">
+              🧠 {{ m.score }}%
+            </span>
+          </div>
+
+          <p class="match-meta"><strong>Course:</strong> {{ m.user.course }}</p>
+
+          <div>
+            <p class="match-meta mb-2"><strong>Common Modules ({{ m.common_modules|length }}):</strong></p>
+            <div class="chip-row">
+              {% for mod in m.common_modules %}
+                <span class="chip">📘 {{ mod.module_code }} {{ mod.module_name }}</span>
+              {% endfor %}
+            </div>
+          </div>
+
+          <div>
+            <p class="match-meta mb-2"><strong>Common Free Time ({{ m.overlap_minutes }} min total):</strong></p>
+            {% if m.common_slots %}
+              {% for s in m.common_slots[:3] %}
+                <div class="match-slot">📅 {{ s.day|day_name }} · {{ s.start }} – {{ s.end }}</div>
+              {% endfor %}
+              {% if m.common_slots|length > 3 %}
+                <p class="text-soft text-sm mt-1">+ {{ m.common_slots|length - 3 }} more slot(s)</p>
+              {% endif %}
+            {% else %}
+              <p class="text-soft text-sm">No overlapping free time — add more availability to connect.</p>
+            {% endif %}
+          </div>
+
+          <form method="post" action="{{ url_for('matches.send_request') }}" class="mt-1">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input type="hidden" name="matched_user_id" value="{{ m.user_id }}">
+
+            <div class="request-fields">
+              <select name="module_id" required aria-label="Common module">
+                {% for mod in m.common_modules %}
+                  <option value="{{ mod.module_id }}">{{ mod.module_code }} — {{ mod.module_name }}</option>
+                {% endfor %}
+              </select>
+              {% if m.common_slots %}
+                <select name="slot" aria-label="Proposed common slot">
+                  <option value="">Suggest: any common slot</option>
+                  {% for s in m.common_slots %}
+                    <option value="{{ s.day }}|{{ s.start }}|{{ s.end }}">{{ s.day|day_name }} · {{ s.start }} – {{ s.end }}</option>
+                  {% endfor %}
+                </select>
+              {% endif %}
+            </div>
+
+            <button type="submit" class="btn btn-sm btn-block mt-1">Send Study Request →</button>
+          </form>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="card">
+      <div class="empty-state">
+        <span class="empty-icon">🔍</span>
+        No matches found yet.<br>
+        Select more modules (or add availability) so SCOPE can connect you with
+        students studying the same subjects.
+        <div class="mt-2" style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
+          <a class="btn btn-outline btn-sm" href="{{ url_for('modules.select_modules') }}">Select Modules</a>
+          <a class="btn btn-outline btn-sm" href="{{ url_for('availability.manage_availability') }}">Add Availability</a>
+        </div>
+      </div>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

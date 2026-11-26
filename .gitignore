@@ -1,0 +1,13 @@
+# --- Secrets: NEVER commit or upload these ------------------
+.env
+
+# --- Python cache --------------------------------------------
+__pycache__/
+*.pyc
+
+# --- Local database (contains user data) ---------------------
+db/*.db
+
+# --- OS junk ---------------------------------------------------
+.DS_Store
+Thumbs.db

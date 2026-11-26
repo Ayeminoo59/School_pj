@@ -1,0 +1,103 @@
+{% extends 'base.html' %}
+{% block title %}Study Groups{% endblock %}
+
+{% block content %}
+<div class="stack">
+  <div class="card page-header">
+    <p class="card-title">👥 Study Groups</p>
+    <p class="card-subtitle">Your groups, groups you can join, and a place to create a new one.</p>
+  </div>
+
+  <div class="card">
+    <p class="card-title">🗂️ My Groups ({{ my_groups|length }})</p>
+    <p class="card-subtitle">Groups you are a member of.</p>
+
+    {% if my_groups %}
+      <div class="grid-cards">
+        {% for g in my_groups %}
+          <div class="match-card">
+            <div class="flex-between">
+              <h3>{{ g.name }}</h3>
+              <span class="chip">📘 {{ g.module_obj.module_code }}</span>
+            </div>
+            <p class="match-meta">👥 {{ g.members|length }} member{{ 's' if g.members|length > 1 }} · created by {{ g.creator_obj.name }}</p>
+            {% if g.description %}<p class="text-soft text-sm">{{ g.description }}</p>{% endif %}
+            <a class="btn btn-outline btn-sm" href="{{ url_for('groups.group_detail', group_id=g.group_id) }}">Open Group →</a>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="empty-state">
+        <span class="empty-icon">👥</span>
+        You haven't joined any study group yet — accept a study request, join a
+        group below, or create your own.
+      </div>
+    {% endif %}
+  </div>
+
+  <div class="card">
+    <p class="card-title">🔎 Discover Groups</p>
+    <p class="card-subtitle">Open groups for modules you study.</p>
+
+    {% if discover_groups %}
+      {% for g in discover_groups %}
+        <div class="row-item">
+          <div class="row-main">
+            <div class="row-title">{{ g.name }}</div>
+            <div class="row-sub">📘 {{ g.module_obj.module_code }} — {{ g.module_obj.module_name }} · 👥 {{ g.members|length }} member(s) · by {{ g.creator_obj.name }}</div>
+          </div>
+          <div class="row-actions">
+            <form method="post" action="{{ url_for('groups.join_group', group_id=g.group_id) }}" class="inline-form">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button type="submit" class="btn btn-sm">+ Join Group</button>
+            </form>
+          </div>
+        </div>
+      {% endfor %}
+    {% else %}
+      <div class="empty-state">
+        <span class="empty-icon">🌙</span>
+        No open groups for your modules right now.
+      </div>
+    {% endif %}
+  </div>
+
+  <div class="card">
+    <p class="card-title">✨ Create a New Group</p>
+    <p class="card-subtitle">Start your own study group for one of your modules.</p>
+
+    {% if my_modules %}
+      <form method="post" action="{{ url_for('groups.create_group') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="name">Group Name</label>
+            <input class="form-input" type="text" id="name" name="name" placeholder="e.g., CS401 Weekend Warriors" required maxlength="150">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="module_id">Module</label>
+            <select class="form-select" id="module_id" name="module_id" required>
+              {% for m in my_modules %}
+                <option value="{{ m.module_id }}">{{ m.module_code }} — {{ m.module_name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="description">Description <span class="text-soft">(optional)</span></label>
+          <input class="form-input" type="text" id="description" name="description" placeholder="What will this group focus on?" maxlength="255">
+        </div>
+
+        <button type="submit" class="btn">➕ Create Group</button>
+      </form>
+    {% else %}
+      <div class="empty-state">
+        <span class="empty-icon">📚</span>
+        Select at least one module before creating a group.
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

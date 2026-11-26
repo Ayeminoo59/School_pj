@@ -1,0 +1,140 @@
+{% extends 'base.html' %}
+{% block title %}{{ group.name }}{% endblock %}
+
+{% block content %}
+<div class="stack">
+  <div class="card page-header">
+    <div class="flex-between">
+      <div>
+        <p class="card-title">👥 {{ group.name }}</p>
+        <p class="card-subtitle" style="margin-bottom:0;">
+          📘 {{ group.module_obj.module_code }} — {{ group.module_obj.module_name }}
+          · created by {{ group.creator_obj.name }}
+          · 👥 {{ group.members|length }} member(s)
+        </p>
+      </div>
+      <div class="row-actions">
+        {% if current_user.user_id == group.creator_id %}
+          <form method="post" action="{{ url_for('groups.delete_group', group_id=group.group_id) }}"
+                data-confirm="Delete this group permanently? All members and proposed schedules will be removed.">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="btn btn-danger btn-sm">🗑️ Delete Group</button>
+          </form>
+        {% else %}
+          <form method="post" action="{{ url_for('groups.leave_group', group_id=group.group_id) }}"
+                data-confirm="Leave this study group?">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="btn btn-ghost-danger btn-sm">Leave Group</button>
+          </form>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div class="grid-cards">
+    <div class="card">
+      <p class="card-title">🧑‍🤝‍🧑 Members</p>
+      <ul class="summary-list mt-2">
+        {% for member in members %}
+          <li>
+            <strong>{{ member.user_obj.name }}</strong>
+            <span class="text-soft text-sm">{{ member.user_obj.course }}</span>
+            {% if member.user_obj.user_id == group.creator_id %}<span class="chip">👑 Creator</span>{% endif %}
+          </li>
+        {% endfor %}
+      </ul>
+    </div>
+
+    <div class="card">
+      <p class="card-title">🤖 Suggested Common Slots</p>
+      <p class="card-subtitle">Auto-detected from all members' availability (time slot overlap detection).</p>
+
+      {% if suggested_slots %}
+        {% for s in suggested_slots %}
+          <div class="slot-row">
+            <span>📅 {{ s.day|day_name }} · {{ s.start }} – {{ s.end }} <span class="text-soft">({{ s.minutes }} min)</span></span>
+            <form method="post" action="{{ url_for('groups.propose_schedule', group_id=group.group_id) }}">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <input type="hidden" name="day_of_week" value="{{ s.day }}">
+              <input type="hidden" name="start_time" value="{{ s.start }}">
+              <input type="hidden" name="end_time" value="{{ s.end }}">
+              <button type="submit" class="btn btn-sm">Propose</button>
+            </form>
+          </div>
+        {% endfor %}
+      {% else %}
+        <div class="empty-state">
+          <span class="empty-icon">🕐</span>
+          No common free time across all members yet — ask members to add availability.
+        </div>
+      {% endif %}
+    </div>
+
+    <div class="card">
+      <p class="card-title">🗓️ Propose a Schedule</p>
+      <p class="card-subtitle">Suggest a study session time for the whole group.</p>
+
+      <form method="post" action="{{ url_for('groups.propose_schedule', group_id=group.group_id) }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="day_of_week">Day</label>
+            <select class="form-select" id="day_of_week" name="day_of_week" required>
+              {% for day in day_names %}
+                <option value="{{ loop.index0 }}">{{ day }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="start_time">Start Time</label>
+            <input class="form-input" type="time" id="start_time" name="start_time" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="end_time">End Time</label>
+            <input class="form-input" type="time" id="end_time" name="end_time" required>
+          </div>
+        </div>
+        <button type="submit" class="btn">➕ Propose Schedule</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="card">
+    <p class="card-title">📋 Proposed Schedules ({{ schedules|length }})</p>
+    <p class="card-subtitle">Session proposals for this group — any member can confirm a slot.</p>
+
+    {% if schedules %}
+      {% for s in schedules %}
+        <div class="row-item">
+          <div class="row-main">
+            <div class="row-title">📅 {{ s.day_of_week|day_name }} · {{ s.start_time }} – {{ s.end_time }}</div>
+            <div class="row-sub">proposed by {{ s.proposer_obj.name }}</div>
+          </div>
+          <div class="row-actions">
+            <span class="badge badge-{{ s.status }}">{
+              {%- if s.status == 'confirmed' %}✓ Confirmed{% else %}⏳ Proposed{% endif -%}
+            }</span>
+            {% if s.status == 'proposed' %}
+              <form method="post" action="{{ url_for('groups.confirm_schedule', group_id=group.group_id, schedule_id=s.schedule_id) }}" class="inline-form">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="btn btn-sm">✓ Confirm</button>
+              </form>
+            {% endif %}
+            {% if s.proposed_by_id == current_user.user_id or current_user.user_id == group.creator_id %}
+              <form method="post" action="{{ url_for('groups.delete_schedule', group_id=group.group_id, schedule_id=s.schedule_id) }}" class="inline-form">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="btn btn-ghost-danger btn-sm">Remove</button>
+              </form>
+            {% endif %}
+          </div>
+        </div>
+      {% endfor %}
+    {% else %}
+      <div class="empty-state">
+        <span class="empty-icon">🗓️</span>
+        No schedules proposed yet — start with a suggested common slot above.
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

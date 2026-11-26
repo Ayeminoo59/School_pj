@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+{% block title %}Admin · Users{% endblock %}
+
+{% block content %}
+<div class="stack">
+  <div class="card page-header">
+    <p class="card-title">👤 User Management ({{ users|length }})</p>
+    <p class="card-subtitle">
+      Promote students to admin, or remove accounts. Deleting a user also removes
+      their modules, availability, requests, matches and the groups they created.
+    </p>
+    <div class="row-actions mt-2">
+      <a class="btn btn-outline btn-sm" href="{{ url_for('admin.dashboard') }}">← Dashboard</a>
+      <a class="btn btn-outline btn-sm" href="{{ url_for('admin.modules') }}">Modules</a>
+      <a class="btn btn-outline btn-sm" href="{{ url_for('admin.groups') }}">Groups</a>
+      <a class="btn btn-outline btn-sm" href="{{ url_for('admin.requests_view') }}">Requests</a>
+    </div>
+  </div>
+
+  <div class="card">
+    {% for u in users %}
+      <div class="row-item">
+        <div class="row-main">
+          <div class="row-title">
+            {{ u.name }}
+            {% if u.is_admin %}<span class="badge badge-excellent">ADMIN</span>{% endif %}
+            {% if u.user_id == current_user.user_id %}<span class="chip">you</span>{% endif %}
+          </div>
+          <div class="row-sub">
+            {{ u.email }} · {{ u.course }} · 📚 {{ u.user_modules|length }} module(s) ·
+            👥 {{ u.group_memberships|length }} group(s) · joined {{ u.created_at.strftime('%d %b %Y') }}
+          </div>
+        </div>
+
+        {% if u.user_id != current_user.user_id %}
+          <div class="row-actions">
+            <form method="post" action="{{ url_for('admin.toggle_admin', user_id=u.user_id) }}" class="inline-form">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button type="submit" class="btn btn-outline btn-sm">{{ 'Remove Admin' if u.is_admin else 'Make Admin' }}</button>
+            </form>
+            <form method="post" action="{{ url_for('admin.delete_user', user_id=u.user_id) }}" class="inline-form"
+                  onsubmit="return confirm('Delete {{ u.name }} and ALL their data? This cannot be undone.');">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+            </form>
+          </div>
+        {% endif %}
+      </div>
+    {% else %}
+      <div class="empty-state">
+        <span class="empty-icon">👤</span>
+        No users yet.
+      </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

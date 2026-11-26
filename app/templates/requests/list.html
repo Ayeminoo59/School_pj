@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+{% block title %}Study Requests{% endblock %}
+
+{% block content %}
+<div class="stack">
+  <div class="card page-header">
+    <p class="card-title">📨 Study Requests</p>
+    <p class="card-subtitle">Requests you received and sent. Accepting a request creates a study group with your match.</p>
+  </div>
+
+  <div class="card">
+    <p class="card-title">📥 Incoming ({{ incoming|length }})</p>
+    <p class="card-subtitle">Students who want to study with you.</p>
+
+    {% if incoming %}
+      {% for r in incoming %}
+        <div class="row-item">
+          <div class="row-main">
+            <div class="row-title">{{ r.sender_obj.name }}</div>
+            <div class="row-sub">
+              📘 {{ r.module_obj.module_code }} — {{ r.module_obj.module_name }}
+              {% if r.day_of_week is not none %}
+                · 📅 suggested: {{ r.day_of_week|day_name }} {{ r.start_time }}–{{ r.end_time }}
+              {% endif %}
+              · <span class="text-soft">{{ r.created_at.strftime('%d %b %Y') }}</span>
+            </div>
+          </div>
+          <div class="row-actions">
+            <form method="post" action="{{ url_for('requests.accept_request', request_id=r.request_id) }}" class="inline-form">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button type="submit" class="btn btn-sm">✓ Accept</button>
+            </form>
+            <form method="post" action="{{ url_for('requests.decline_request', request_id=r.request_id) }}" class="inline-form">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button type="submit" class="btn btn-outline btn-sm">✕ Decline</button>
+            </form>
+          </div>
+        </div>
+      {% endfor %}
+    {% else %}
+      <div class="empty-state">
+        <span class="empty-icon">📭</span>
+        No incoming requests right now.
+      </div>
+    {% endif %}
+  </div>
+
+  <div class="card">
+    <p class="card-title">📤 Outgoing ({{ outgoing|length }})</p>
+    <p class="card-subtitle">Requests you have sent to other students.</p>
+
+    {% if outgoing %}
+      {% for r in outgoing %}
+        <div class="row-item">
+          <div class="row-main">
+            <div class="row-title">To: {{ r.receiver_obj.name }}</div>
+            <div class="row-sub">
+              📘 {{ r.module_obj.module_code }} — {{ r.module_obj.module_name }}
+              {% if r.day_of_week is not none %}
+                · 📅 suggested: {{ r.day_of_week|day_name }} {{ r.start_time }}–{{ r.end_time }}
+              {% endif %}
+            </div>
+          </div>
+          <div class="row-actions">
+            <span class="badge badge-{{ r.status }}">{
+              {%- if r.status == 'pending' %}⏳ Pending{% elif r.status == 'accepted' %}✓ Accepted{% else %}✕ Declined{% endif -%}
+            }</span>
+            {% if r.status == 'pending' %}
+              <form method="post" action="{{ url_for('requests.cancel_request', request_id=r.request_id) }}" class="inline-form">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="btn btn-ghost-danger btn-sm">Cancel</button>
+              </form>
+            {% endif %}
+          </div>
+        </div>
+      {% endfor %}
+    {% else %}
+      <div class="empty-state">
+        <span class="empty-icon">✉️</span>
+        You haven't sent any study requests yet — check your matches!
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

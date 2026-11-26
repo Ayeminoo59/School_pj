@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+{% block title %}Admin · Modules{% endblock %}
+
+{% block content %}
+<div class="stack">
+  <div class="card page-header">
+    <p class="card-title">📚 Module Management ({{ modules|length }})</p>
+    <p class="card-subtitle">Add or remove the modules students can enrol in.</p>
+    <div class="row-actions mt-2">
+      <a class="btn btn-outline btn-sm" href="{{ url_for('admin.dashboard') }}">← Dashboard</a>
+    </div>
+  </div>
+
+  <div class="card">
+    <p class="card-title">➕ Add a Module</p>
+    <p class="card-subtitle">New modules instantly appear on the Modules page for every student.</p>
+
+    <form method="post" action="{{ url_for('admin.modules') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label" for="module_code">Module Code</label>
+          <input class="form-input" type="text" id="module_code" name="module_code"
+                 placeholder="e.g., CS411" required maxlength="10">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="module_name">Module Name</label>
+          <input class="form-input" type="text" id="module_name" name="module_name"
+                 placeholder="e.g., Blockchain Basics" required maxlength="120">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="description">Description <span class="text-soft">(optional)</span></label>
+        <input class="form-input" type="text" id="description" name="description"
+               placeholder="Short description of the module" maxlength="255">
+      </div>
+
+      <button type="submit" class="btn">➕ Add Module</button>
+    </form>
+  </div>
+
+  <div class="card">
+    <p class="card-title">🗂️ All Modules</p>
+
+    {% for m in modules %}
+      <div class="row-item">
+        <div class="row-main">
+          <div class="row-title">{{ m.module_code }} — {{ m.module_name }}</div>
+          <div class="row-sub">
+            🎓 {{ m.enrollments|length }} enrolled · 👥 {{ m.groups|length }} group(s)
+            {% if m.description %} · {{ m.description }}{% endif %}
+          </div>
+        </div>
+        <div class="row-actions">
+          <form method="post" action="{{ url_for('admin.delete_module', module_id=m.module_id) }}" class="inline-form"
+                onsubmit="return confirm('Delete {{ m.module_code }}? Enrolments and groups for this module will also be removed.');">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+          </form>
+        </div>
+      </div>
+    {% else %}
+      <div class="empty-state">
+        <span class="empty-icon">📚</span>
+        No modules yet — add the first one above.
+      </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

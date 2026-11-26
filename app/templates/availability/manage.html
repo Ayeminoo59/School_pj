@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+{% block title %}Availability{% endblock %}
+
+{% block content %}
+<div class="stack">
+  <div class="card page-header">
+    <p class="card-title">⏰ When Are You Free to Study?</p>
+    <p class="card-subtitle">Select your available time slots. SCOPE uses these to find common study times with your matches.</p>
+
+    {% if my_slots %}
+      <div class="day-grid">
+        {% for day in day_names %}
+          {% set day_slots = my_slots|selectattr('day_of_week', 'equalto', loop.index0)|list %}
+          {% if day_slots %}
+            <div class="day-card">
+              <h4>{{ day }}</h4>
+              {% for s in day_slots|sort(attribute='start_time') %}
+                <div class="slot-row">
+                  <span>🕐 {{ s.start_time }} – {{ s.end_time }}</span>
+                  <form method="post" action="{{ url_for('availability.delete_slot', slot_id=s.availability_id) }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn btn-ghost-danger btn-sm">Remove</button>
+                  </form>
+                </div>
+              {% endfor %}
+            </div>
+          {% endif %}
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="empty-state">
+        <span class="empty-icon">🕐</span>
+        No availability yet — add your first time slot below.
+      </div>
+    {% endif %}
+  </div>
+
+  <div class="card">
+    <p class="card-title">➕ Add New Time Slot</p>
+    <p class="card-subtitle">Pick a day and the time range you are free for study sessions.</p>
+
+    <form method="post" action="{{ url_for('availability.add_slot') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label" for="day_of_week">Day</label>
+          <select class="form-select" id="day_of_week" name="day_of_week" required>
+            {% for day in day_names %}
+              <option value="{{ loop.index0 }}">{{ day }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="start_time">Start Time</label>
+          <input class="form-input" type="time" id="start_time" name="start_time" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="end_time">End Time</label>
+          <input class="form-input" type="time" id="end_time" name="end_time" required>
+        </div>
+      </div>
+
+      <button type="submit" class="btn">+ Add Slot</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

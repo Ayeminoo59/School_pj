@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% block title %}Select Modules{% endblock %}
+
+{% block content %}
+<div class="card page-header">
+  <p class="card-title">📖 Select Your Modules</p>
+  <p class="card-subtitle">Choose the modules you are currently studying. You selected <strong id="selectedCount">0</strong> module(s).</p>
+
+  <form method="post" action="{{ url_for('modules.save_modules') }}" id="moduleForm">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+    <div class="module-grid">
+      {% for m in all_modules %}
+        <label class="module-card {{ 'selected' if m.module_id in selected_ids }}">
+          <input type="checkbox" name="modules" value="{{ m.module_id }}" {{ 'checked' if m.module_id in selected_ids }}>
+          <span class="module-check">✓</span>
+          <div class="module-code">{{ m.module_code }}</div>
+          <div class="module-name">{{ m.module_name }}</div>
+          <div class="module-desc">{{ m.description }}</div>
+        </label>
+      {% endfor %}
+    </div>
+
+    <div class="mt-3">
+      <button type="submit" class="btn">💾 Save My Modules</button>
+    </div>
+  </form>
+</div>
+{% endblock %}
